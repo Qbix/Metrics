@@ -1,0 +1,66 @@
+{
+	"Q": {
+		"pluginInfo": {
+			"Metrics": {
+				"version": "0.4",
+				"compatible": "0.1",
+				"requires": {
+					"Q": "1.0"
+				},
+				"permissions": [],
+				"connections": ["Metrics"]
+			}
+		},
+		"handlersBeforeEvent": {
+			
+		},
+		"handlersAfterEvent": {
+			"Q/metrics": ["Metrics/after/Q_metrics"]
+		},
+		"routes@end": {
+			
+		},
+		"routes": {
+		    
+		},
+		"web": {
+
+		},
+		"javascript": {
+
+		},
+		"environments": {
+			"live": {
+				"prepare": {
+					"{{Metrics}}": ["js", "css"]
+				}
+			}
+		},
+		"text": {
+
+		},
+		"images": {
+
+		}
+	},
+	"Users": {
+
+	},
+	"Streams": {
+		"types": {
+			
+		}
+	},
+	"Metrics": {
+		"action": {
+			"id": {
+				"length": 30
+			}
+		},
+		"querystring": {
+			"fields": {
+				"trackerId": ["sourceId"]
+			}
+		}
+	}
+}

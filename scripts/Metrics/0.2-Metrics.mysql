@@ -1,0 +1,68 @@
+CREATE TABLE `{{prefix}}source` (
+  `sourceId` varbinary(63) NOT NULL COMMENT "can be of the form publisherId/someName",
+  `publisherId` varbinary(31) NOT NULL COMMENT "userId for whom to gather metrics",
+  `platform` varbinary(31) NOT NULL COMMENT "e.g. ios, android",
+  `appId` varbinary(31) NOT NULL COMMENT "e.g. com.qbix.groups",
+  `version` varbinary(31) NOT NULL COMMENT "template version",
+  `actionId` varbinary(1024) NOT NULL COMMENT "URL to show or redirect user to",
+  `utm_source` varchar(31) NULL COMMENT "referrer, e.g. google, newsletter4, billboard",
+  `utm_medium` varchar(31) NULL COMMENT "marketing medium, e.g. cpc, banner, email",
+  `utm_campaign` varchar(31) NULL COMMENT "product, slogan, promo code e.g. spring_sale",
+  `utm_content` varchar(31) NULL COMMENT "to differentiate multiple links inside a source",
+  `utm_term` varchar(31) NULL COMMENT "the keyword used in search, if any",
+  `invitedCount` INT NOT NULL COMMENT "number of people the source was sent to",
+  `arrivedCount` INT NOT NULL COMMENT "the number of visits with this sourceId",
+  `joinedCount` INT NOT NULL COMMENT "the number of visitors who ended up joining",
+  `arrivedRatio` DECIMAL(10,4) NOT NULL COMMENT "arrivedCount / invitedCount",
+  `joinedRatio` DECIMAL(10,4) NOT NULL COMMENT "joinedCount / invitedCount",
+  `insertedTime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updatedTime` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`sourceId`),
+  INDEX (`publisherId`),
+  INDEX (`platform`, `appId`, `version`),
+  INDEX (`arrivedRatio`),
+  INDEX (`joinedRatio`),
+  INDEX (`utm_source`),
+  INDEX (`utm_medium`),
+  INDEX (`utm_campaign`),
+  INDEX (`utm_content`),
+  INDEX (`utm_term`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `{{prefix}}visit` (
+  `id` varbinary(31) NOT NULL,
+  `sourceId` varbinary(63) NOT NULL,
+  `startTime` TIMESTAMP NULL,
+  `endTime` TIMESTAMP NULL,
+  `platform` varbinary(31) NOT NULL,
+  `formFactor` enum('desktop', 'mobile', 'tablet', 'other') NOT NULL,
+  `IP` varbinary(31),
+  `country` VARCHAR(255) NULL,
+  `region` VARCHAR(255) NULL,
+  `city` VARCHAR(255) NULL,
+  PRIMARY KEY (`id`),
+  INDEX (`sourceId`),
+  INDEX (`platform`),
+  INDEX (`formFactor`),
+  INDEX (`IP`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `{{prefix}}action` (
+  `id` varbinary(31) NOT NULL,
+  `url` varbinary(2083) NULL,
+  `canonicalActionId` varbinary(31) NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `{{prefix}}hit` (
+  `visitId` varbinary(31) NOT NULL,
+  `actionId` varbinary(31) NOT NULL COMMENT "the action that was visited",
+  `fromActionId` varchar(63) NULL COMMENT "the action, if any, from which the visit originated",
+  `sourceId` varbinary(31) NULL COMMENT "the source, if any, from which the visit originated",
+  `insertedTime` TIMESTAMP NULL,
+  INDEX(`visitId`, `insertedTime`),
+  INDEX(`actionId`),
+  INDEX(`fromActionId`),
+  INDEX(`sourceId`),
+  INDEX(`insertedTime`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -1,0 +1,10 @@
+
+ALTER TABLE `{{prefix}}action`
+ADD INDEX (`url`),
+ADD INDEX (`canonicalActionId`);
+
+ALTER TABLE `{{prefix}}visit`
+CHANGE COLUMN `endTime` `lastTime` TIMESTAMP NULL,
+ADD COLUMN `lastActionId` varbinary(31) NULL,
+ADD INDEX (`country`, `region`, `city`),
+ADD INDEX (`lastActionId`);
