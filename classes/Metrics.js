@@ -17,8 +17,8 @@ function Metrics() {
     return this;
 }
 
-var Streams = Q.plugins.Streams;
-var Users = Q.plugins.Users;
+var Streams = Q.require('Streams');
+var Users = Q.require('Users');
 
 Streams.Message.on('deliver', function (info) {
     var stream = info.stream;
