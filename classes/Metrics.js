@@ -34,7 +34,7 @@ Streams.Message.on('deliver', function (info) {
         userId: message.byUserId,
         forType: 'Metrics/message',
         forId: [stream.fields.type, mf.type].join("\t"),
-        value: ,
+        value: 1,
         weight: 1
     }).save(function (err) {
 
