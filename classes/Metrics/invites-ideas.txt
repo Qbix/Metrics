@@ -1,0 +1,11 @@
+for invites:
+
+1) make it invitedCount, visitedCount, participatingCount, leftCount (add up last two to get # participated)
+2) invite should have invitedCount (this is maxCount, if nonzero then it enforces a limit on acceptedCount -- but not visitedCount), visitedCount, acceptedCount
+3) don't need user for visiting invite, but store sessionIds and only increment if sessionId is new.
+4) we need streams_invite_visit, we can just use Users/vote for this, so get totals and averages, and then just update visitedCount (and redirect)
+
+1) increment invitedCount on stream itself, for rawUserIds, if not token
+2) for the token approach, invite with token can have extra "maxCount"
+3) we need Streams_Invite extra "viewedCount" (not accepted necessarily), do it one per session, and store which invites you visited, in the session
+4) when an invite is accepted, update extra "acceptedCount" in addition to quotas

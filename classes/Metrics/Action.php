@@ -60,11 +60,11 @@ class Metrics_Action extends Base_Metrics_Action
 	static function idFromUrl($url)
 	{
 		$str = parse_url($url, PHP_URL_PATH);
-		if (strlen($str) <= 63) {
+		if (mb_strlen($str, '8bit') <= 63) {
 			return $str;
-		}
+		};
 		$length = Q_Config::get('Metrics', 'action', 'id', 'length', 8);
-		return substr(sha1($str), 0, $length);
+		return substr($str, 0, 32 - $length) . "\t" . substr(sha1($str), 0, $length);
 	}
 
 	/**
@@ -78,11 +78,11 @@ class Metrics_Action extends Base_Metrics_Action
 	{
 		$parts = explode(' ', (string)$uri);
 		$str = $parts[0];
-		if (strlen($str) <= 63) {
+		if (mb_strlen($str, '8bit') <= 63) {
 			return $str;
 		}
 		$length = Q_Config::get('Metrics', 'action', 'id', 'length', 8);
-		return substr(sha1($str), 0, $length);
+		return substr($str, 0, 32 - $length) . "\t" . substr(sha1($str), 0, $length);
 	}
 
 
