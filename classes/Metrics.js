@@ -36,7 +36,7 @@ Streams.Message.on('deliver', function (info) {
         forId: [stream.fields.type, mf.type].join("\t"),
         value: 1,
         weight: 1
-    }).save(function (err) {
+    }).save(true, false, function (err) {
 
     });
 });
