@@ -30,15 +30,13 @@ Streams.Message.on('deliver', function (info) {
     // todo: retrieve vote and read previous success, total from extra
     // then either add 1 to success or not, add 1 to total, and save
     // ideally, we can do it in a transaction, and test it.
-    new Users.Vote({
-        userId: message.byUserId,
-        forType: 'Metrics/message',
-        forId: [stream.fields.type, mf.type].join("\t"),
-        value: 1,
-        weight: 1
-    }).save(true, false, function (err) {
-
-    });
+    Users.Vote.vote(
+        'Metrics/message', 
+        [[stream.fields.type, mf.type].join("\t")],
+        [1],
+        [1],
+        mf.byUserId
+    );
 });
 
 module.exports = Metrics;
