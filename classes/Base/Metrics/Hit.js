@@ -460,6 +460,15 @@ Base.prototype.beforeSave = function (value) {
 	if (!this._retrieved && !value['insertedTime']) {
 		this['insertedTime'] = value['insertedTime'] = new Db.Expression('CURRENT_TIMESTAMP');
 	}
+	if (this.fields["visitId"] == undefined) {
+		this.fields["visitId"] = value["visitId"] = "";
+	}
+	if (this.fields["actionId"] == undefined) {
+		this.fields["actionId"] = value["actionId"] = "";
+	}
+	if (this.fields["trackerId"] == undefined) {
+		this.fields["trackerId"] = value["trackerId"] = "";
+	}
 	return value;
 };
 

@@ -488,6 +488,12 @@ return array (
 		}						
 		// convention: we'll have updatedTime = insertedTime if just created.
 		$this->updatedTime = $value['updatedTime'] = new Db_Expression('CURRENT_TIMESTAMP');
+		if (!isset($value["trackerId"])) {
+			$this->trackerId = $value["trackerId"] = "";
+		}
+		if (!isset($value["traitId"])) {
+			$this->traitId = $value["traitId"] = "";
+		}
 		return $value;			
 	}
 

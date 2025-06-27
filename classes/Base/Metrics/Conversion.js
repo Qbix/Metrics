@@ -526,6 +526,21 @@ Base.prototype.beforeSave = function (value) {
 	}
 	// convention: we'll have updatedTime = insertedTime if just created.
 	this['updatedTime'] = value['updatedTime'] = new Db.Expression('CURRENT_TIMESTAMP');
+	if (this.fields["traitId"] == undefined) {
+		this.fields["traitId"] = value["traitId"] = "";
+	}
+	if (this.fields["actionId"] == undefined) {
+		this.fields["actionId"] = value["actionId"] = "";
+	}
+	if (this.fields["visitsTotal"] == undefined) {
+		this.fields["visitsTotal"] = value["visitsTotal"] = 0;
+	}
+	if (this.fields["sinceTracker"] == undefined) {
+		this.fields["sinceTracker"] = value["sinceTracker"] = 0;
+	}
+	if (this.fields["sinceVisit"] == undefined) {
+		this.fields["sinceVisit"] = value["sinceVisit"] = 0;
+	}
 	return value;
 };
 

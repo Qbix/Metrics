@@ -716,6 +716,18 @@ Base.prototype.beforeSave = function (value) {
 			}
 		}
 	}
+	if (this.fields["id"] == undefined) {
+		this.fields["id"] = value["id"] = "";
+	}
+	if (this.fields["trackerId"] == undefined) {
+		this.fields["trackerId"] = value["trackerId"] = "";
+	}
+	if (this.fields["platform"] == undefined) {
+		this.fields["platform"] = value["platform"] = "";
+	}
+	if (this.fields["lastActionId"] == undefined) {
+		this.fields["lastActionId"] = value["lastActionId"] = "";
+	}
 	return value;
 };
 

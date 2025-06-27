@@ -630,6 +630,21 @@ return array (
 		}						
 		// convention: we'll have updatedTime = insertedTime if just created.
 		$this->updatedTime = $value['updatedTime'] = new Db_Expression('CURRENT_TIMESTAMP');
+		if (!isset($value["traitId"])) {
+			$this->traitId = $value["traitId"] = "";
+		}
+		if (!isset($value["actionId"])) {
+			$this->actionId = $value["actionId"] = "";
+		}
+		if (!isset($value["visitsTotal"])) {
+			$this->visitsTotal = $value["visitsTotal"] = 0;
+		}
+		if (!isset($value["sinceTracker"])) {
+			$this->sinceTracker = $value["sinceTracker"] = 0;
+		}
+		if (!isset($value["sinceVisit"])) {
+			$this->sinceVisit = $value["sinceVisit"] = 0;
+		}
 		return $value;			
 	}
 

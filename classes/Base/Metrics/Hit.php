@@ -544,6 +544,15 @@ return array (
 			$this->insertedTime = $value['insertedTime'] = new Db_Expression('CURRENT_TIMESTAMP');
 		}
 
+		if (!isset($value["visitId"])) {
+			$this->visitId = $value["visitId"] = "";
+		}
+		if (!isset($value["actionId"])) {
+			$this->actionId = $value["actionId"] = "";
+		}
+		if (!isset($value["trackerId"])) {
+			$this->trackerId = $value["trackerId"] = "";
+		}
 		return $value;			
 	}
 

@@ -906,6 +906,18 @@ return array (
 				}
 			}
 		}
+		if (!isset($value["id"])) {
+			$this->id = $value["id"] = "";
+		}
+		if (!isset($value["trackerId"])) {
+			$this->trackerId = $value["trackerId"] = "";
+		}
+		if (!isset($value["platform"])) {
+			$this->platform = $value["platform"] = "";
+		}
+		if (!isset($value["lastActionId"])) {
+			$this->lastActionId = $value["lastActionId"] = "";
+		}
 		return $value;			
 	}
 

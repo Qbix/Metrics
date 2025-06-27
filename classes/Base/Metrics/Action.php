@@ -436,6 +436,12 @@ return array (
 				}
 			}
 		}
+		if (!isset($value["id"])) {
+			$this->id = $value["id"] = "";
+		}
+		if (!isset($value["canonicalActionId"])) {
+			$this->canonicalActionId = $value["canonicalActionId"] = "";
+		}
 		return $value;			
 	}
 
