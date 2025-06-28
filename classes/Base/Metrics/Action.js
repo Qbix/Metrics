@@ -393,10 +393,10 @@ Base.prototype.beforeSave = function (value) {
 			}
 		}
 	}
-	if (this.fields["id"] == undefined) {
+	if (this.fields["id"] == undefined && value["id"] == undefined) {
 		this.fields["id"] = value["id"] = "";
 	}
-	if (this.fields["canonicalActionId"] == undefined) {
+	if (this.fields["canonicalActionId"] == undefined && value["canonicalActionId"] == undefined) {
 		this.fields["canonicalActionId"] = value["canonicalActionId"] = "";
 	}
 	return value;

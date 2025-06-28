@@ -436,10 +436,10 @@ return array (
 				}
 			}
 		}
-		if (!isset($value["id"])) {
+		if (!isset($this->fields["id"]) and !isset($value["id"])) {
 			$this->id = $value["id"] = "";
 		}
-		if (!isset($value["canonicalActionId"])) {
+		if (!isset($this->fields["canonicalActionId"]) and !isset($value["canonicalActionId"])) {
 			$this->canonicalActionId = $value["canonicalActionId"] = "";
 		}
 		return $value;			

@@ -551,13 +551,13 @@ return array (
 			$this->insertedTime = $value['insertedTime'] = new Db_Expression('CURRENT_TIMESTAMP');
 		}
 
-		if (!isset($value["visitId"])) {
+		if (!isset($this->fields["visitId"]) and !isset($value["visitId"])) {
 			$this->visitId = $value["visitId"] = "";
 		}
-		if (!isset($value["actionId"])) {
+		if (!isset($this->fields["actionId"]) and !isset($value["actionId"])) {
 			$this->actionId = $value["actionId"] = "";
 		}
-		if (!isset($value["trackerId"])) {
+		if (!isset($this->fields["trackerId"]) and !isset($value["trackerId"])) {
 			$this->trackerId = $value["trackerId"] = "";
 		}
 		return $value;			

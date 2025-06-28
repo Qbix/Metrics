@@ -611,16 +611,16 @@ return array (
 		}						
 		// convention: we'll have updatedTime = insertedTime if just created.
 		$this->updatedTime = $value['updatedTime'] = new Db_Expression('CURRENT_TIMESTAMP');
-		if (!isset($value["id"])) {
+		if (!isset($this->fields["id"]) and !isset($value["id"])) {
 			$this->id = $value["id"] = "";
 		}
-		if (!isset($value["publisherId"])) {
+		if (!isset($this->fields["publisherId"]) and !isset($value["publisherId"])) {
 			$this->publisherId = $value["publisherId"] = "";
 		}
-		if (!isset($value["sentCount"])) {
+		if (!isset($this->fields["sentCount"]) and !isset($value["sentCount"])) {
 			$this->sentCount = $value["sentCount"] = 0;
 		}
-		if (!isset($value["visitsCount"])) {
+		if (!isset($this->fields["visitsCount"]) and !isset($value["visitsCount"])) {
 			$this->visitsCount = $value["visitsCount"] = 0;
 		}
 		return $value;			

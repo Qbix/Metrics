@@ -906,16 +906,16 @@ return array (
 				}
 			}
 		}
-		if (!isset($value["id"])) {
+		if (!isset($this->fields["id"]) and !isset($value["id"])) {
 			$this->id = $value["id"] = "";
 		}
-		if (!isset($value["trackerId"])) {
+		if (!isset($this->fields["trackerId"]) and !isset($value["trackerId"])) {
 			$this->trackerId = $value["trackerId"] = "";
 		}
-		if (!isset($value["platform"])) {
+		if (!isset($this->fields["platform"]) and !isset($value["platform"])) {
 			$this->platform = $value["platform"] = "";
 		}
-		if (!isset($value["lastActionId"])) {
+		if (!isset($this->fields["lastActionId"]) and !isset($value["lastActionId"])) {
 			$this->lastActionId = $value["lastActionId"] = "";
 		}
 		return $value;			

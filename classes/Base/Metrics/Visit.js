@@ -716,16 +716,16 @@ Base.prototype.beforeSave = function (value) {
 			}
 		}
 	}
-	if (this.fields["id"] == undefined) {
+	if (this.fields["id"] == undefined && value["id"] == undefined) {
 		this.fields["id"] = value["id"] = "";
 	}
-	if (this.fields["trackerId"] == undefined) {
+	if (this.fields["trackerId"] == undefined && value["trackerId"] == undefined) {
 		this.fields["trackerId"] = value["trackerId"] = "";
 	}
-	if (this.fields["platform"] == undefined) {
+	if (this.fields["platform"] == undefined && value["platform"] == undefined) {
 		this.fields["platform"] = value["platform"] = "";
 	}
-	if (this.fields["lastActionId"] == undefined) {
+	if (this.fields["lastActionId"] == undefined && value["lastActionId"] == undefined) {
 		this.fields["lastActionId"] = value["lastActionId"] = "";
 	}
 	return value;
