@@ -63,7 +63,7 @@ class Metrics_Hit extends Base_Metrics_Hit
 		));
 		$hit->save(); // automatically sets insertedTime
 		$visit->lastActionId = $actionId;
-		$visit->endTime = Db::now();
+		$visit->lastTime = $startTime;
 		$visit->save(true);
 		return $hit;
 	}
