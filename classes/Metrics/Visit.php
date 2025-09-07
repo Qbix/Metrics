@@ -104,7 +104,7 @@ class Metrics_Visit extends Base_Metrics_Visit
 			$this->id = $modifiedFields['id'] = Metrics::db()->uniqueId(
 				Metrics_Visit::table(), 'id',
 				array(),
-				array('prefix' => 'v')
+				array('prefix' => 'v-')
 			);
 		}
 		return parent::beforeSave($modifiedFields);
