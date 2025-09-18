@@ -1,0 +1,7 @@
+ALTER TABLE {{prefix}}visit
+  DROP COLUMN country,
+  DROP COLUMN region,
+  DROP COLUMN city,
+  ADD COLUMN countryCode varchar(2) NULL,
+  ADD COLUMN postcode varchar(20) NULL,
+  ADD COLUMN geonameId int NULL;

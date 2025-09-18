@@ -2,7 +2,7 @@
 	"Q": {
 		"pluginInfo": {
 			"Metrics": {
-				"version": "0.4",
+				"version": "0.5",
 				"compatible": "0.1",
 				"requires": {
 					"Q": "1.0"
@@ -60,6 +60,14 @@
 		"querystring": {
 			"fields": {
 				"trackerId": ["sourceId"]
+			}
+		},
+		"visit": {
+			"ip": {
+				"trustProxies": false
+			},
+			"enrich": {
+				"location": true
 			}
 		}
 	}

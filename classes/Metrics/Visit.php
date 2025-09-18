@@ -55,7 +55,7 @@ class Metrics_Visit extends Base_Metrics_Visit
 			$lastActionId = null;
 			$platform = Q_Request::platform();
 			$formFactor = Q_Request::formFactor();
-			$IP = Q::ifset($_SERVER, 'REMOTE_ADDR', '');
+			$IP = Q_Request::ip();
 			// TODO: check for existence of Places_IP2Location table
 			// and then you can fill in these things:
 			$country = $region = $city = null;

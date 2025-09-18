@@ -10,6 +10,9 @@ function Metrics_landed_post()
     if (empty($visit->trackerId)) {
         $visit->trackerId = $trackerId;
         $visit->save();
+        Q::event('Metrics/landed/visit/started', array(
+            'visit' => $visit
+        ));
     }
 
     Q_Response::setSlot('visitId', $visit->id);
