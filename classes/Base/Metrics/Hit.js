@@ -26,6 +26,8 @@ var Row = Q.require('Db/Row');
  * @param {String} [fields.fromActionId] defaults to null
  * @param {String|Buffer} [fields.trackerId] defaults to ""
  * @param {String|Db.Expression} [fields.insertedTime] defaults to null
+ * @param {String} [fields.finalState] defaults to null
+ * @param {String} [fields.extra] defaults to null
  */
 function Base (fields) {
 	Base.constructors.apply(this, arguments);
@@ -62,6 +64,18 @@ Q.mixin(Base, Row);
  * @type String|Db.Expression
  * @default null
  * 
+ */
+/**
+ * @property finalState
+ * @type String
+ * @default null
+ * Final state for this hit (e.g. step2, completed, abandoned, error)
+ */
+/**
+ * @property extra
+ * @type String
+ * @default null
+ * Additional info, errors, JSON payload, etc.
  */
 
 /**
@@ -275,7 +289,9 @@ Base.fieldNames = function () {
 		"actionId",
 		"fromActionId",
 		"trackerId",
-		"insertedTime"
+		"insertedTime",
+		"finalState",
+		"extra"
 	];
 };
 
@@ -453,6 +469,78 @@ Base.prototype.beforeSet_insertedTime = function (value) {
 Base.column_insertedTime = function () {
 
 return [["timestamp",null,null,null],true,"MUL",null];
+};
+
+/**
+ * Method is called before setting the field and verifies if value is string of length within acceptable limit.
+ * Optionally accept numeric value which is converted to string
+ * @method beforeSet_finalState
+ * @param {string} value
+ * @return {string} The value
+ * @throws {Error} An exception is thrown if 'value' is not string or is exceedingly long
+ */
+Base.prototype.beforeSet_finalState = function (value) {
+		if (value == undefined) return value;
+		if (value instanceof Db.Expression) return value;
+		if (typeof value !== "string" && typeof value !== "number")
+			throw new Error('Must pass a String to '+this.table()+".finalState");
+		if (typeof value === "string" && value.length > 63)
+			throw new Error('Exceedingly long value being assigned to '+this.table()+".finalState");
+		return value;
+};
+
+	/**
+	 * Returns the maximum string length that can be assigned to the finalState field
+	 * @return {integer}
+	 */
+Base.prototype.maxSize_finalState = function () {
+
+		return 63;
+};
+
+	/**
+	 * Returns schema information for finalState column
+	 * @return {array} [[typeName, displayRange, modifiers, unsigned], isNull, key, default]
+	 */
+Base.column_finalState = function () {
+
+return [["varchar","63","",false],true,"",null];
+};
+
+/**
+ * Method is called before setting the field and verifies if value is string of length within acceptable limit.
+ * Optionally accept numeric value which is converted to string
+ * @method beforeSet_extra
+ * @param {string} value
+ * @return {string} The value
+ * @throws {Error} An exception is thrown if 'value' is not string or is exceedingly long
+ */
+Base.prototype.beforeSet_extra = function (value) {
+		if (value == undefined) return value;
+		if (value instanceof Db.Expression) return value;
+		if (typeof value !== "string" && typeof value !== "number")
+			throw new Error('Must pass a String to '+this.table()+".extra");
+		if (typeof value === "string" && value.length > 1023)
+			throw new Error('Exceedingly long value being assigned to '+this.table()+".extra");
+		return value;
+};
+
+	/**
+	 * Returns the maximum string length that can be assigned to the extra field
+	 * @return {integer}
+	 */
+Base.prototype.maxSize_extra = function () {
+
+		return 1023;
+};
+
+	/**
+	 * Returns schema information for extra column
+	 * @return {array} [[typeName, displayRange, modifiers, unsigned], isNull, key, default]
+	 */
+Base.column_extra = function () {
+
+return [["varchar","1023","",false],true,"",null];
 };
 
 /**

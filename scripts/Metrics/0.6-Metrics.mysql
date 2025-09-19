@@ -1,0 +1,3 @@
+ALTER TABLE `{{prefix}}hit`
+  ADD COLUMN `finalState` VARCHAR(63) COMMENT 'Final state for this hit (e.g. step2, completed, abandoned, error)',
+  ADD COLUMN `extra` VARCHAR(1023) DEFAULT NULL COMMENT 'Additional info, errors, JSON payload, etc.';
