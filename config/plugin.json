@@ -63,9 +63,6 @@
 			}
 		},
 		"visit": {
-			"ip": {
-				"trustProxies": false
-			},
 			"enrich": {
 				"location": true
 			}
