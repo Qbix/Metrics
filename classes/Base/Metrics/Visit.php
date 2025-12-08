@@ -70,7 +70,7 @@ abstract class Base_Metrics_Visit extends Db_Row
 	 * @property $IP
 	 * @type string
 	 * @default null
-	 * 
+	 * ipv4 or ipv6
 	 */
 	/**
 	 * @property $lastActionId
@@ -177,7 +177,6 @@ abstract class Base_Metrics_Visit extends Db_Row
 			}
 			$fields = implode(',', $fieldNames);
 		}
-		$alias = isset($alias) ? ' '.$alias : '';
 		$q = self::db()->select($fields, self::table(true, $alias));
 		$q->className = 'Metrics_Visit';
 		return $q;
@@ -633,7 +632,7 @@ return array (
 		}
 		if (!is_string($value) and !is_numeric($value))
 			throw new Exception('Must pass a string to '.$this->getTable().".IP");
-		if (strlen($value) > 31)
+		if (strlen($value) > 255)
 			throw new Exception('Exceedingly long value being assigned to '.$this->getTable().".IP");
 		return array('IP', $value);			
 	}
@@ -645,7 +644,7 @@ return array (
 	function maxSize_IP()
 	{
 
-		return 31;			
+		return 255;			
 	}
 
 	/**
@@ -659,7 +658,7 @@ return array (
   0 => 
   array (
     0 => 'varbinary',
-    1 => '31',
+    1 => '255',
     2 => '',
     3 => false,
   ),

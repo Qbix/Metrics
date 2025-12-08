@@ -1,2 +1,2 @@
 ALTER TABLE `{{prefix}}visit`
-`IP` varbinary(255) COMMENT 'ipv4 or ipv6';
+CHANGE COLUMN `IP` `IP` varbinary(255) COMMENT 'ipv4 or ipv6';
