@@ -2,7 +2,7 @@
 	"Q": {
 		"pluginInfo": {
 			"Metrics": {
-				"version": "0.6",
+				"version": "0.7",
 				"compatible": "0.1",
 				"requires": {
 					"Q": "1.0"
@@ -12,7 +12,7 @@
 			}
 		},
 		"handlersBeforeEvent": {
-			
+			"Users/User/lastActiveTime": ["Metrics/before/Users_User_lastActiveTime"]
 		},
 		"handlersAfterEvent": {
 			"Q/metrics": ["Metrics/after/Q_metrics"]
