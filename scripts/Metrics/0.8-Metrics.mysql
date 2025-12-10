@@ -1,0 +1,2 @@
+ALTER TABLE `{{prefix}}visit`
+ADD INDEX (`id`, `lastTime`);
