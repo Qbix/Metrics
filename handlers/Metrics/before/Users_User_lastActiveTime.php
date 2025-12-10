@@ -11,7 +11,6 @@ function Metrics_before_Users_User_lastActiveTime($params, &$result)
 		'id' => new Db_Range($userId . ';', true, false, true)
 	))->orderBy('lastTime', false)->limit(1)->fetchDbRows();
 	if ($visits) {
-
 		$visit = $visits[0];
 		if ($visit->lastTime) {
 			$result = strtotime($visit->lastTime);
