@@ -101,11 +101,15 @@ class Metrics_Visit extends Base_Metrics_Visit
 		$internal = array()
 	) {
 		if (!isset($modifiedFields['id']) and !isset($this->id)) {
-			$this->id = $modifiedFields['id'] = Metrics::db()->uniqueId(
+			$id = Metrics::db()->uniqueId(
 				Metrics_Visit::table(), 'id',
 				array(),
 				array('prefix' => 'v-')
 			);
+			// give other plugins a chance to transform the id,
+			// for example the Users plugin might prepend the loggedInUser's id
+			$id = Q::event('Metrics/Visit/id', array(), 'before', false, $id);
+			$this->id = $modifiedFields['id'] = $id;
 		}
 		return parent::beforeSave($modifiedFields);
 	}

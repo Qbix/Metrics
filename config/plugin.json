@@ -2,7 +2,7 @@
 	"Q": {
 		"pluginInfo": {
 			"Metrics": {
-				"version": "0.7",
+				"version": "0.8",
 				"compatible": "0.1",
 				"requires": {
 					"Q": "1.0"
