@@ -83,6 +83,18 @@ class Metrics_Visit extends Base_Metrics_Visit
 	}
 
 	/**
+	 * Gets ID of the referring visit, if any, otherwise ""
+	 * @return {string}
+	 */
+	function referringVisitId() {
+		$trackerId = $this->trackerId;
+		if (Q::startsWith($trackerId, 'visitId:')) {
+			return $parentVisitId = substr($trackerId, 8);
+		}
+		return "";
+	}
+
+	/**
 	 * Does necessary preparations for saving a visit in the database.
 	 * @method beforeSave
 	 * @param {array} $modifiedFields
