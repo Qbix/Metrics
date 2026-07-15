@@ -54,6 +54,14 @@
 	}
 
 	Q.onReady.add(function () {
+		// Initialize ScrollTracker if configured
+		var stConfig = Q.getObject('Metrics.scrollTracker', Q.plugins) 
+			|| Q.getObject('Metrics.scrollTracker', Q);
+		if (stConfig && stConfig.endpoint && window.Metrics && Metrics.ScrollTracker) {
+			stConfig.page = stConfig.page || Q.info.url || document.title;
+			Metrics.ScrollTracker.init(stConfig);
+		}
+
 		// look for a parent visitId in the hash
 		var parentVisitId = location.hash.queryField('v');
 		if (!parentVisitId) {
