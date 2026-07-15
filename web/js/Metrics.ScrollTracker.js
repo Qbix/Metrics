@@ -158,11 +158,11 @@ function send(label, eventData) {
 	var body = JSON.stringify(payload);
 	try {
 		if (navigator.sendBeacon) {
-			navigator.sendBeacon(opts.endpoint, new Blob([body], { type: 'application/json' }));
+			navigator.sendBeacon(opts.endpoint, new Blob([body], { type: 'text/plain' }));
 		} else {
 			fetch(opts.endpoint, {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
+				headers: { 'Content-Type': 'text/plain' },
 				keepalive: true,
 				body: body
 			});
