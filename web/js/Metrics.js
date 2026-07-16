@@ -281,12 +281,112 @@ if (typeof Q !== 'undefined') {
 			}, 'Metrics');
 		}
 
-		// Initialize ScrollTracker if configured
-		var stConfig = Q.getObject('Metrics.scrollTracker', Q.plugins) 
-			|| Q.getObject('Metrics.scrollTracker', Q);
-		if (stConfig && Metrics.ScrollTracker) {
+		// Initialize NavigationTracker if configured
+		var stConfig = Q.getObject('Metrics.navigationTracker', Q.plugins) 
+			|| Q.getObject('Metrics.navigationTracker', Q);
+		if (stConfig && Metrics.NavigationTracker) {
 			stConfig.page = stConfig.page || Q.info.url || document.title;
-			Metrics.ScrollTracker.init(stConfig);
+			Metrics.NavigationTracker.init(stConfig);
+		}
+
+		// Initialize MediaTracker if configured
+		var mtConfig = Q.getObject('Metrics.mediaTracker', Q.plugins)
+			|| Q.getObject('Metrics.mediaTracker', Q);
+		if (mtConfig && Metrics.MediaTracker) {
+			Metrics.MediaTracker.init(mtConfig);
+		}
+
+		// ── Auto-wire into Q tools for navigation tracking ──
+		var NT = Metrics.NavigationTracker;
+		if (NT) {
+			// Q/tabs — track tab switches (debounced to avoid rapid fire)
+			var _tabDebounce = null;
+			Q.Tool.onActivate('Q/tabs').set(function () {
+				var tabsTool = this;
+				tabsTool.state.onCurrent.set(function (tab, tabName) {
+					clearTimeout(_tabDebounce);
+					var _name = tabName;
+					_tabDebounce = setTimeout(function () {
+						if (_name && NT.state.initialized) {
+							NT.opened('tab:' + _name);
+						}
+					}, 300);
+				}, 'Metrics.NavigationTracker');
+			}, 'Metrics.NavigationTracker');
+
+			// Q/columns — track column open/close
+			Q.Tool.onActivate('Q/columns').set(function () {
+				var columnsTool = this;
+				columnsTool.state.onActivate.set(function (div, options, index) {
+					if (!NT.state.initialized) return;
+					var name = (div && div.getAttribute('data-name')) || ('column-' + index);
+					NT.opened('column:' + name);
+				}, 'Metrics.NavigationTracker');
+				columnsTool.state.onClose.set(function (index, div) {
+					if (!NT.state.initialized) return;
+					var name = (div && div.getAttribute('data-name')) || ('column-' + index);
+					NT.closed('column:' + name);
+				}, 'Metrics.NavigationTracker');
+			}, 'Metrics.NavigationTracker');
+
+			// Q/expandable — track expand/collapse
+			Q.Tool.onActivate('Q/expandable').set(function () {
+				var expTool = this;
+				var expId = expTool.element.id
+					|| expTool.element.getAttribute('data-name')
+					|| expTool.id;
+				expTool.state.onExpand.set(function () {
+					if (!NT.state.initialized) return;
+					NT.opened('expandable:' + expId);
+				}, 'Metrics.NavigationTracker');
+				expTool.state.onCollapse.set(function () {
+					if (!NT.state.initialized) return;
+					NT.closed('expandable:' + expId);
+				}, 'Metrics.NavigationTracker');
+			}, 'Metrics.NavigationTracker');
+
+			// Q.Contextual — track contextual menu show/hide/item selection
+			if (Q.Contextual) {
+				Q.Contextual.onShow.set(function (contextual) {
+					if (!NT.state.initialized) return;
+					var $ctx = $(contextual);
+					var $trigger = $ctx.data('Q/contextual trigger');
+					var ctxId = ($trigger && $trigger.attr('data-name'))
+						|| ($trigger && $trigger.attr('id'))
+						|| 'contextual-' + Q.Contextual.current;
+					NT.opened('contextual:' + ctxId);
+
+					// Track links/items scrolling into view inside the contextual
+					var listing = contextual.querySelector
+						? contextual.querySelector('.Q_listing_wrapper, .Q_listing')
+						: null;
+					if (listing) {
+						NT.observeNavContainer(listing);
+					}
+				}, 'Metrics.NavigationTracker');
+
+				Q.Contextual.onHide.set(function (contextual) {
+					if (!NT.state.initialized) return;
+					if (NT.state.activeSection
+					&& NT.state.activeSection.indexOf('contextual:') === 0) {
+						NT.closed(NT.state.activeSection);
+					}
+				}, 'Metrics.NavigationTracker');
+
+				// Intercept contextual item selection
+				var _origItemHandler = Q.Contextual.itemSelectHandler;
+				if (_origItemHandler) {
+					Q.Contextual.itemSelectHandler = function (element, event) {
+						if (NT.state.initialized) {
+							var action = element.getAttribute('data-action')
+								|| element.getAttribute('data-name')
+								|| (element.textContent || '').trim().slice(0, 40);
+							Metrics.send('contextual-item:' + action);
+						}
+						return _origItemHandler.apply(this, arguments);
+					};
+				}
+			}
 		}
 
 		// Visit chaining — look for a parent visitId in the hash
