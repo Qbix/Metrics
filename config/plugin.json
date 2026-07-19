@@ -72,6 +72,26 @@
 			"enrich": {
 				"location": true
 			}
+		},
+		"navigationTracker": {
+			"sections": "h2[id], h3[id], section[id], [data-section]",
+			"minSectionHeight": 100,
+			"debounce": 1000,
+			"initDelay": 800,
+			"anchorCooldown": 1500,
+			"depthMilestones": [25, 50, 75, 100],
+			"sectionLookback": 300,
+			"settleTolerance": 2,
+			"recheckInterval": 500,
+			"trackClicks": true,
+			"trackUnload": true,
+			"handleBfcache": true
+		},
+		"mediaTracker": {
+			"checkpointInterval": 10,
+			"autoDiscover": true,
+			"reloadIframes": false,
+			"observeDom": true
 		}
 	}
 }
