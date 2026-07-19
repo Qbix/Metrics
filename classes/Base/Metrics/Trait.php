@@ -300,7 +300,7 @@ abstract class Base_Metrics_Trait extends Db_Row
 		}
 		if (!is_string($value) and !is_numeric($value))
 			throw new Exception('Must pass a string to '.$this->getTable().".id");
-		if (strlen($value) > 63)
+		if (mb_strlen($value) > 63)
 			throw new Exception('Exceedingly long value being assigned to '.$this->getTable().".id");
 		return array('id', $value);			
 	}
@@ -355,7 +355,7 @@ return array (
 		}
 		if (!is_string($value) and !is_numeric($value))
 			throw new Exception('Must pass a string to '.$this->getTable().".name");
-		if (strlen($value) > 63)
+		if (mb_strlen($value) > 63)
 			throw new Exception('Exceedingly long value being assigned to '.$this->getTable().".name");
 		return array('name', $value);			
 	}
@@ -410,7 +410,7 @@ return array (
 		}
 		if (!is_string($value) and !is_numeric($value))
 			throw new Exception('Must pass a string to '.$this->getTable().".content");
-		if (strlen($value) > 63)
+		if (mb_strlen($value) > 63)
 			throw new Exception('Exceedingly long value being assigned to '.$this->getTable().".content");
 		return array('content', $value);			
 	}

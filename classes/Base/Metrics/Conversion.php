@@ -301,7 +301,7 @@ abstract class Base_Metrics_Conversion extends Db_Row
 		}
 		if (!is_string($value) and !is_numeric($value))
 			throw new Exception('Must pass a string to '.$this->getTable().".traitId");
-		if (strlen($value) > 63)
+		if (mb_strlen($value) > 63)
 			throw new Exception('Exceedingly long value being assigned to '.$this->getTable().".traitId");
 		return array('traitId', $value);			
 	}
@@ -356,7 +356,7 @@ return array (
 		}
 		if (!is_string($value) and !is_numeric($value))
 			throw new Exception('Must pass a string to '.$this->getTable().".actionId");
-		if (strlen($value) > 63)
+		if (mb_strlen($value) > 63)
 			throw new Exception('Exceedingly long value being assigned to '.$this->getTable().".actionId");
 		return array('actionId', $value);			
 	}

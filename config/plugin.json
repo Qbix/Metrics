@@ -26,6 +26,12 @@
 		"web": {
 
 		},
+		"webserver": {
+			"preload": [
+				"Metrics", "Metrics_Visit", "Metrics_Hit", 
+				"Metrics_Action", "Metrics_Tracker"
+			]
+		},
 		"javascript": {
 
 		},

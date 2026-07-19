@@ -293,7 +293,7 @@ abstract class Base_Metrics_Tracker extends Db_Row
 		}
 		if (!is_string($value) and !is_numeric($value))
 			throw new Exception('Must pass a string to '.$this->getTable().".id");
-		if (strlen($value) > 63)
+		if (mb_strlen($value) > 63)
 			throw new Exception('Exceedingly long value being assigned to '.$this->getTable().".id");
 		return array('id', $value);			
 	}
@@ -348,7 +348,7 @@ return array (
 		}
 		if (!is_string($value) and !is_numeric($value))
 			throw new Exception('Must pass a string to '.$this->getTable().".publisherId");
-		if (strlen($value) > 31)
+		if (mb_strlen($value) > 31)
 			throw new Exception('Exceedingly long value being assigned to '.$this->getTable().".publisherId");
 		return array('publisherId', $value);			
 	}

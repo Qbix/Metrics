@@ -328,7 +328,7 @@ abstract class Base_Metrics_Visit extends Db_Row
 		}
 		if (!is_string($value) and !is_numeric($value))
 			throw new Exception('Must pass a string to '.$this->getTable().".id");
-		if (strlen($value) > 63)
+		if (mb_strlen($value) > 63)
 			throw new Exception('Exceedingly long value being assigned to '.$this->getTable().".id");
 		return array('id', $value);			
 	}
@@ -383,7 +383,7 @@ return array (
 		}
 		if (!is_string($value) and !is_numeric($value))
 			throw new Exception('Must pass a string to '.$this->getTable().".trackerId");
-		if (strlen($value) > 63)
+		if (mb_strlen($value) > 63)
 			throw new Exception('Exceedingly long value being assigned to '.$this->getTable().".trackerId");
 		return array('trackerId', $value);			
 	}
@@ -538,7 +538,7 @@ return array (
 		}
 		if (!is_string($value) and !is_numeric($value))
 			throw new Exception('Must pass a string to '.$this->getTable().".platform");
-		if (strlen($value) > 31)
+		if (mb_strlen($value) > 31)
 			throw new Exception('Exceedingly long value being assigned to '.$this->getTable().".platform");
 		return array('platform', $value);			
 	}
@@ -632,7 +632,7 @@ return array (
 		}
 		if (!is_string($value) and !is_numeric($value))
 			throw new Exception('Must pass a string to '.$this->getTable().".IP");
-		if (strlen($value) > 255)
+		if (mb_strlen($value) > 255)
 			throw new Exception('Exceedingly long value being assigned to '.$this->getTable().".IP");
 		return array('IP', $value);			
 	}
@@ -687,7 +687,7 @@ return array (
 		}
 		if (!is_string($value) and !is_numeric($value))
 			throw new Exception('Must pass a string to '.$this->getTable().".lastActionId");
-		if (strlen($value) > 63)
+		if (mb_strlen($value) > 63)
 			throw new Exception('Exceedingly long value being assigned to '.$this->getTable().".lastActionId");
 		return array('lastActionId', $value);			
 	}
@@ -742,7 +742,7 @@ return array (
 		}
 		if (!is_string($value) and !is_numeric($value))
 			throw new Exception('Must pass a string to '.$this->getTable().".countryCode");
-		if (strlen($value) > 2)
+		if (mb_strlen($value) > 2)
 			throw new Exception('Exceedingly long value being assigned to '.$this->getTable().".countryCode");
 		return array('countryCode', $value);			
 	}
@@ -797,7 +797,7 @@ return array (
 		}
 		if (!is_string($value) and !is_numeric($value))
 			throw new Exception('Must pass a string to '.$this->getTable().".postcode");
-		if (strlen($value) > 20)
+		if (mb_strlen($value) > 20)
 			throw new Exception('Exceedingly long value being assigned to '.$this->getTable().".postcode");
 		return array('postcode', $value);			
 	}
