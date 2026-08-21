@@ -104,22 +104,94 @@ function now() { return Date.now(); }
 
 // ── Section Discovery ──
 
+
+
+/**
+ * Extract a meaningful title from an element.
+ * For headings: use the heading text.
+ * For containers: look for a heading child, aria-label, title attr,
+ * data-section-name, or first meaningful text.
+ */
+function extractTitle(el) {
+	var tag = el.tagName.toLowerCase();
+
+	// Headings — just use their text
+	if (/^h[1-6]$/.test(tag)) {
+		return (el.textContent || '').trim();
+	}
+
+	// Explicit name attributes
+	var explicit = el.getAttribute('data-section-name')
+		|| el.getAttribute('data-section')
+		|| el.getAttribute('aria-label')
+		|| el.getAttribute('title');
+	if (explicit) return explicit.trim();
+
+	// <details> — use <summary> text
+	if (tag === 'details') {
+		var summary = el.querySelector('summary');
+		if (summary) return (summary.textContent || '').trim();
+	}
+
+	// Containers — look for first heading child
+	var heading = el.querySelector('h1, h2, h3, h4, h5, h6');
+	if (heading) return (heading.textContent || '').trim();
+
+	// Look for a title-like element
+	var titleEl = el.querySelector('[class*="title"], [class*="header"], legend, caption, label');
+	if (titleEl) return (titleEl.textContent || '').trim();
+
+	// Fallback: first 80 chars of text content
+	return (el.textContent || '').trim().slice(0, 80);
+}
+
 function discoverSections(selector) {
 	var elements = document.querySelectorAll(selector);
 	var result = [];
 	var ordinal = 0;
 	var minH = (state.options && state.options.minSectionHeight) || 0;
+	var seenIds = {};
+
 	for (var i = 0; i < elements.length; i++) {
 		var el = elements[i];
-		if (el.offsetHeight < minH) continue;
-		if (!el.id) {
-			el.id = slugify(el.textContent || '') || ('section-' + ordinal);
+		var tag = el.tagName.toLowerCase();
+
+		// Skip tiny elements (but not headings, which are naturally small)
+		if (!/^h[1-6]$/.test(tag) && el.offsetHeight < minH) continue;
+
+		// Skip nested: if this container has a heading that's also matched,
+		// skip the container to avoid duplicates
+		// UNLESS the container has explicit data-section attr
+		if (!/^h[1-6]$/.test(tag)) {
+			var childHeading = el.querySelector('h1, h2, h3, h4');
+			if (childHeading && elements.length > 0) {
+				if (!el.hasAttribute('data-section')
+					&& !el.hasAttribute('data-track-section')
+					&& !el.hasAttribute('aria-label')) {
+					continue;
+				}
+			}
 		}
+
+		// Generate or use ID
+		var title = extractTitle(el);
+		if (!el.id) {
+			var slug = slugify(title) || ('section-' + ordinal);
+			if (seenIds[slug]) {
+				slug = slug + '-' + ordinal;
+			}
+			el.id = slug;
+		}
+
+		// Avoid duplicate IDs in results
+		if (seenIds[el.id]) continue;
+		seenIds[el.id] = true;
+
 		result.push({
 			el: el, id: el.id,
-			tag: el.tagName.toLowerCase(),
+			tag: tag,
 			ordinal: ordinal++,
-			snippet: snippet(el)
+			snippet: title.slice(0, 80)
 		});
 	}
 	return result;
