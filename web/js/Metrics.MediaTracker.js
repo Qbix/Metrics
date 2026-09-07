@@ -427,7 +427,7 @@ function discoverMedia() {
 		trackNative(natives[i]);
 	}
 
-	// YouTube iframes
+	// Iframes — detect by src URL
 	var iframes = document.querySelectorAll('iframe[src]');
 	for (var j = 0; j < iframes.length; j++) {
 		var src = iframes[j].src || '';
@@ -435,7 +435,29 @@ function discoverMedia() {
 			trackYouTube(iframes[j]);
 		} else if (/player\.vimeo\.com/.test(src)) {
 			trackVimeo(iframes[j]);
+		} else if (/w\.soundcloud\.com\/player/.test(src)) {
+			trackSoundCloud(iframes[j]);
+		} else if (/dailymotion\.com\/embed/.test(src)) {
+			trackDailymotion(iframes[j]);
+		} else if (/open\.spotify\.com\/embed/.test(src)) {
+			trackSpotify(iframes[j]);
+		} else if (/player\.twitch\.tv/.test(src)) {
+			trackTwitch(iframes[j]);
+		} else if (/muse\.ai\/embed/.test(src)) {
+			trackMuseAi(iframes[j]);
 		}
+	}
+
+	// Wistia — detected by class name, not iframe
+	var wistias = document.querySelectorAll('[class*="wistia_embed"], [class*="wistia_async_"]');
+	for (var k = 0; k < wistias.length; k++) {
+		trackWistia(wistias[k]);
+	}
+
+	// JW Player — detected by container class or data attribute
+	var jwContainers = document.querySelectorAll('.jwplayer, [data-jw-id]');
+	for (var l = 0; l < jwContainers.length; l++) {
+		trackJWPlayer(jwContainers[l]);
 	}
 }
 
@@ -454,8 +476,22 @@ function _startMutationObserver() {
 					trackNative(node);
 				}
 				if (node.tagName === 'IFRAME' && node.src) {
-					if (/youtube\.com\/embed/.test(node.src)) trackYouTube(node);
-					else if (/player\.vimeo\.com/.test(node.src)) trackVimeo(node);
+					var s = node.src;
+					if (/youtube\.com\/embed/.test(s)) trackYouTube(node);
+					else if (/player\.vimeo\.com/.test(s)) trackVimeo(node);
+					else if (/w\.soundcloud\.com\/player/.test(s)) trackSoundCloud(node);
+					else if (/dailymotion\.com\/embed/.test(s)) trackDailymotion(node);
+					else if (/open\.spotify\.com\/embed/.test(s)) trackSpotify(node);
+					else if (/player\.twitch\.tv/.test(s)) trackTwitch(node);
+					else if (/muse\.ai\/embed/.test(s)) trackMuseAi(node);
+				}
+				// Wistia containers
+				if (node.className && /wistia_embed|wistia_async_/.test(node.className)) {
+					trackWistia(node);
+				}
+				// JW Player containers
+				if (node.className && /jwplayer/.test(node.className)) {
+					trackJWPlayer(node);
 				}
 				// Check descendants
 				if (node.querySelectorAll) {
@@ -466,7 +502,16 @@ function _startMutationObserver() {
 						var s = iframes[j].src || '';
 						if (/youtube\.com\/embed/.test(s)) trackYouTube(iframes[j]);
 						else if (/player\.vimeo\.com/.test(s)) trackVimeo(iframes[j]);
+						else if (/w\.soundcloud\.com\/player/.test(s)) trackSoundCloud(iframes[j]);
+						else if (/dailymotion\.com\/embed/.test(s)) trackDailymotion(iframes[j]);
+						else if (/open\.spotify\.com\/embed/.test(s)) trackSpotify(iframes[j]);
+						else if (/player\.twitch\.tv/.test(s)) trackTwitch(iframes[j]);
+						else if (/muse\.ai\/embed/.test(s)) trackMuseAi(iframes[j]);
 					}
+					var wistias = node.querySelectorAll('[class*="wistia_embed"], [class*="wistia_async_"]');
+					for (var k = 0; k < wistias.length; k++) trackWistia(wistias[k]);
+					var jws = node.querySelectorAll('.jwplayer, [data-jw-id]');
+					for (var l = 0; l < jws.length; l++) trackJWPlayer(jws[l]);
 				}
 			});
 		});
@@ -576,6 +621,41 @@ var MT = {
 		trackVimeo(iframe);
 	},
 
+	trackSoundCloud: function (iframe, id) {
+		if (id) iframe.id = id;
+		trackSoundCloud(iframe);
+	},
+
+	trackWistia: function (container, id) {
+		if (id) container.id = id;
+		trackWistia(container);
+	},
+
+	trackJWPlayer: function (container, id) {
+		if (id) container.id = id;
+		trackJWPlayer(container);
+	},
+
+	trackDailymotion: function (iframe, id) {
+		if (id) iframe.id = id;
+		trackDailymotion(iframe);
+	},
+
+	trackSpotify: function (iframe, id) {
+		if (id) iframe.id = id;
+		trackSpotify(iframe);
+	},
+
+	trackTwitch: function (iframe, id) {
+		if (id) iframe.id = id;
+		trackTwitch(iframe);
+	},
+
+	trackMuseAi: function (iframe, id) {
+		if (id) iframe.id = id;
+		trackMuseAi(iframe);
+	},
+
 	/**
 	 * Get all tracked media and their current state
 	 */
@@ -628,3 +708,447 @@ var MT = {
 Metrics.MediaTracker = MT;
 
 })(typeof window !== 'undefined' ? window : this);
+
+// ── SoundCloud Widget ──
+
+function loadSoundCloudAPI(callback) {
+	if (root.SC && root.SC.Widget) { callback(); return; }
+	var script = document.createElement('script');
+	script.src = 'https://w.soundcloud.com/player/api.js';
+	script.onload = callback;
+	document.head.appendChild(script);
+}
+
+function trackSoundCloud(iframe) {
+	var id = genId(iframe);
+	if (state.tracked[id]) return;
+
+	loadSoundCloudAPI(function () {
+		if (state.tracked[id]) return;
+		var widget = SC.Widget(iframe);
+		var tracker = createTracker(id, 'soundcloud', iframe, 0);
+		state.tracked[id] = tracker;
+
+		widget.bind(SC.Widget.Events.READY, function () {
+			widget.getDuration(function (d) { tracker.duration = (d || 0) / 1000; });
+		});
+		widget.bind(SC.Widget.Events.PLAY, function () {
+			tracker.playing = true;
+			widget.getPosition(function (p) {
+				tracker.lastPosition = (p || 0) / 1000;
+				tracker._lastTimeUpdate = tracker.lastPosition;
+				sendEvent(tracker, 'media-play');
+				startCheckpoints(tracker);
+			});
+		});
+		widget.bind(SC.Widget.Events.PAUSE, function () {
+			if (!tracker.playing) return;
+			tracker.playing = false;
+			widget.getPosition(function (p) {
+				var pos = (p || 0) / 1000;
+				tracker.watched.add(tracker._lastTimeUpdate, pos);
+				tracker.lastPosition = pos;
+				stopCheckpoints(tracker);
+				sendEvent(tracker, 'media-pause');
+			});
+		});
+		widget.bind(SC.Widget.Events.FINISH, function () {
+			tracker.playing = false;
+			tracker.watched.add(tracker._lastTimeUpdate, tracker.duration);
+			tracker.lastPosition = tracker.duration;
+			stopCheckpoints(tracker);
+			sendEvent(tracker, 'media-ended');
+		});
+		widget.bind(SC.Widget.Events.SEEK, function (e) {
+			var from = tracker.lastPosition;
+			tracker.lastPosition = (e.currentPosition || 0) / 1000;
+			tracker._lastTimeUpdate = tracker.lastPosition;
+			sendEvent(tracker, 'media-seeked', {
+				from: Math.round(from), to: Math.round(tracker.lastPosition)
+			});
+		});
+		widget.bind(SC.Widget.Events.PLAY_PROGRESS, function (e) {
+			var pos = (e.currentPosition || 0) / 1000;
+			if (tracker.playing && pos > tracker._lastTimeUpdate) {
+				tracker.watched.add(tracker._lastTimeUpdate, pos);
+			}
+			tracker._lastTimeUpdate = pos;
+			tracker.lastPosition = pos;
+		});
+	});
+}
+
+// ── Wistia ──
+
+function trackWistia(container) {
+	var id = genId(container);
+	if (state.tracked[id]) return;
+
+	var handleId = container.getAttribute('data-wistia-id')
+		|| (container.className.match(/wistia_async_(\w+)/) || [])[1]
+		|| id;
+
+	root._wq = root._wq || [];
+	root._wq.push({
+		id: handleId,
+		onReady: function (video) {
+			if (state.tracked[id]) return;
+			var tracker = createTracker(id, 'wistia', container, video.duration() || 0);
+			state.tracked[id] = tracker;
+			tracker._player = video;
+
+			video.bind('play', function () {
+				tracker.playing = true;
+				tracker.lastPosition = video.time();
+				tracker._lastTimeUpdate = tracker.lastPosition;
+				tracker.duration = video.duration() || tracker.duration;
+				sendEvent(tracker, 'media-play');
+				startCheckpoints(tracker);
+			});
+			video.bind('pause', function () {
+				if (!tracker.playing) return;
+				tracker.playing = false;
+				var pos = video.time();
+				tracker.watched.add(tracker._lastTimeUpdate, pos);
+				tracker.lastPosition = pos;
+				stopCheckpoints(tracker);
+				sendEvent(tracker, 'media-pause');
+			});
+			video.bind('end', function () {
+				tracker.playing = false;
+				tracker.watched.add(tracker._lastTimeUpdate, tracker.duration);
+				tracker.lastPosition = tracker.duration;
+				stopCheckpoints(tracker);
+				sendEvent(tracker, 'media-ended');
+			});
+			video.bind('seek', function (currentTime, lastTime) {
+				tracker.lastPosition = currentTime;
+				tracker._lastTimeUpdate = currentTime;
+				sendEvent(tracker, 'media-seeked', {
+					from: Math.round(lastTime), to: Math.round(currentTime)
+				});
+			});
+			video.bind('secondchange', function (s) {
+				var pos = s;
+				if (tracker.playing && pos > tracker._lastTimeUpdate) {
+					tracker.watched.add(tracker._lastTimeUpdate, pos);
+				}
+				tracker._lastTimeUpdate = pos;
+				tracker.lastPosition = pos;
+			});
+		}
+	});
+
+	// Load Wistia E-v1 if not present
+	if (!root.Wistia) {
+		var script = document.createElement('script');
+		script.src = 'https://fast.wistia.com/assets/external/E-v1.js';
+		script.async = true;
+		document.head.appendChild(script);
+	}
+}
+
+// ── JW Player ──
+
+function trackJWPlayer(container) {
+	var id = genId(container);
+	if (state.tracked[id]) return;
+
+	// JW Player instance might already exist
+	var playerId = container.id || id;
+	function _bind() {
+		if (!root.jwplayer || typeof root.jwplayer !== 'function') return false;
+		var player;
+		try { player = jwplayer(playerId); } catch (e) { return false; }
+		if (!player || !player.getState) return false;
+
+		var tracker = createTracker(id, 'jwplayer', container, player.getDuration() || 0);
+		state.tracked[id] = tracker;
+		tracker._player = player;
+
+		player.on('play', function () {
+			tracker.playing = true;
+			tracker.lastPosition = player.getPosition();
+			tracker._lastTimeUpdate = tracker.lastPosition;
+			tracker.duration = player.getDuration() || tracker.duration;
+			sendEvent(tracker, 'media-play');
+			startCheckpoints(tracker);
+		});
+		player.on('pause', function () {
+			if (!tracker.playing) return;
+			tracker.playing = false;
+			var pos = player.getPosition();
+			tracker.watched.add(tracker._lastTimeUpdate, pos);
+			tracker.lastPosition = pos;
+			stopCheckpoints(tracker);
+			sendEvent(tracker, 'media-pause');
+		});
+		player.on('complete', function () {
+			tracker.playing = false;
+			tracker.watched.add(tracker._lastTimeUpdate, tracker.duration);
+			tracker.lastPosition = tracker.duration;
+			stopCheckpoints(tracker);
+			sendEvent(tracker, 'media-ended');
+		});
+		player.on('seek', function (e) {
+			tracker.lastPosition = e.offset;
+			tracker._lastTimeUpdate = e.offset;
+			sendEvent(tracker, 'media-seeked', {
+				from: Math.round(e.position), to: Math.round(e.offset)
+			});
+		});
+		player.on('time', function (e) {
+			var pos = e.position;
+			if (tracker.playing && pos > tracker._lastTimeUpdate) {
+				tracker.watched.add(tracker._lastTimeUpdate, pos);
+			}
+			tracker._lastTimeUpdate = pos;
+			tracker.lastPosition = pos;
+			tracker.duration = e.duration || tracker.duration;
+		});
+		return true;
+	}
+
+	// Try immediately, retry after a delay if JW hasn't initialized yet
+	if (!_bind()) {
+		setTimeout(function () { _bind(); }, 2000);
+	}
+}
+
+// ── Dailymotion ──
+
+function trackDailymotion(iframe) {
+	var id = genId(iframe);
+	if (state.tracked[id]) return;
+
+	function _loadAndBind() {
+		if (!root.DM || !root.DM.player) {
+			var script = document.createElement('script');
+			script.src = 'https://api.dmcdn.net/all.js';
+			script.onload = function () { _createPlayer(); };
+			document.head.appendChild(script);
+		} else {
+			_createPlayer();
+		}
+	}
+
+	function _createPlayer() {
+		if (state.tracked[id]) return;
+		var tracker = createTracker(id, 'dailymotion', iframe, 0);
+		state.tracked[id] = tracker;
+
+		var player = DM.player(iframe, { events: {
+			playing: function () {
+				tracker.playing = true;
+				tracker.lastPosition = player.currentTime || 0;
+				tracker._lastTimeUpdate = tracker.lastPosition;
+				tracker.duration = player.duration || tracker.duration;
+				sendEvent(tracker, 'media-play');
+				startCheckpoints(tracker);
+			},
+			pause: function () {
+				if (!tracker.playing) return;
+				tracker.playing = false;
+				var pos = player.currentTime || 0;
+				tracker.watched.add(tracker._lastTimeUpdate, pos);
+				tracker.lastPosition = pos;
+				stopCheckpoints(tracker);
+				sendEvent(tracker, 'media-pause');
+			},
+			end: function () {
+				tracker.playing = false;
+				tracker.watched.add(tracker._lastTimeUpdate, tracker.duration);
+				tracker.lastPosition = tracker.duration;
+				stopCheckpoints(tracker);
+				sendEvent(tracker, 'media-ended');
+			},
+			seeking: function () {
+				var from = tracker.lastPosition;
+				tracker.lastPosition = player.currentTime || 0;
+				tracker._lastTimeUpdate = tracker.lastPosition;
+				sendEvent(tracker, 'media-seeked', {
+					from: Math.round(from), to: Math.round(tracker.lastPosition)
+				});
+			},
+			timeupdate: function () {
+				var pos = player.currentTime || 0;
+				if (tracker.playing && pos > tracker._lastTimeUpdate) {
+					tracker.watched.add(tracker._lastTimeUpdate, pos);
+				}
+				tracker._lastTimeUpdate = pos;
+				tracker.lastPosition = pos;
+				tracker.duration = player.duration || tracker.duration;
+			}
+		}});
+		tracker._player = player;
+	}
+
+	_loadAndBind();
+}
+
+// ── Spotify Embed (limited — position only via playbackUpdate) ──
+
+function trackSpotify(iframe) {
+	var id = genId(iframe);
+	if (state.tracked[id]) return;
+
+	var tracker = createTracker(id, 'spotify', iframe, 0);
+	state.tracked[id] = tracker;
+
+	// Spotify Embed API uses window.onSpotifyIframeApiReady + postMessage
+	window.addEventListener('message', function (e) {
+		if (!e.data || e.source !== iframe.contentWindow) return;
+		var data;
+		try { data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data; }
+		catch (err) { return; }
+		if (!data.type) return;
+
+		if (data.type === 'playback_update') {
+			var pos = (data.payload && data.payload.position) || 0;
+			pos = pos / 1000; // ms to seconds
+			var dur = (data.payload && data.payload.duration) || 0;
+			dur = dur / 1000;
+			var isPaused = data.payload && data.payload.isPaused;
+
+			tracker.duration = dur || tracker.duration;
+
+			if (!isPaused && !tracker.playing) {
+				tracker.playing = true;
+				tracker.lastPosition = pos;
+				tracker._lastTimeUpdate = pos;
+				sendEvent(tracker, 'media-play');
+				startCheckpoints(tracker);
+			} else if (isPaused && tracker.playing) {
+				tracker.playing = false;
+				tracker.watched.add(tracker._lastTimeUpdate, pos);
+				tracker.lastPosition = pos;
+				stopCheckpoints(tracker);
+				sendEvent(tracker, 'media-pause');
+			} else if (!isPaused && tracker.playing && pos > tracker._lastTimeUpdate) {
+				tracker.watched.add(tracker._lastTimeUpdate, pos);
+				tracker._lastTimeUpdate = pos;
+				tracker.lastPosition = pos;
+			}
+		}
+	});
+}
+
+// ── Twitch Player ──
+
+function trackTwitch(iframe) {
+	var id = genId(iframe);
+	if (state.tracked[id]) return;
+
+	function _loadAndBind() {
+		if (!root.Twitch || !root.Twitch.Player) {
+			var script = document.createElement('script');
+			script.src = 'https://player.twitch.tv/js/embed/v1.js';
+			script.onload = function () { _createPlayer(); };
+			document.head.appendChild(script);
+		} else {
+			_createPlayer();
+		}
+	}
+
+	function _createPlayer() {
+		if (state.tracked[id]) return;
+		if (!iframe.id) iframe.id = 'twitch-' + id;
+		var tracker = createTracker(id, 'twitch', iframe, 0);
+		state.tracked[id] = tracker;
+
+		var player = new Twitch.Player(iframe.id, {});
+		tracker._player = player;
+
+		player.addEventListener(Twitch.Player.PLAY, function () {
+			tracker.playing = true;
+			tracker.lastPosition = player.getCurrentTime() || 0;
+			tracker._lastTimeUpdate = tracker.lastPosition;
+			tracker.duration = player.getDuration() || tracker.duration;
+			sendEvent(tracker, 'media-play');
+			startCheckpoints(tracker);
+			tracker._pollTimer = setInterval(function () {
+				var p = player.getCurrentTime() || 0;
+				if (tracker.playing && p > tracker._lastTimeUpdate) {
+					tracker.watched.add(tracker._lastTimeUpdate, p);
+				}
+				tracker._lastTimeUpdate = p;
+				tracker.lastPosition = p;
+			}, 1000);
+		});
+		player.addEventListener(Twitch.Player.PAUSE, function () {
+			if (!tracker.playing) return;
+			tracker.playing = false;
+			var pos = player.getCurrentTime() || 0;
+			tracker.watched.add(tracker._lastTimeUpdate, pos);
+			tracker.lastPosition = pos;
+			stopCheckpoints(tracker);
+			clearInterval(tracker._pollTimer);
+			sendEvent(tracker, 'media-pause');
+		});
+		player.addEventListener(Twitch.Player.ENDED, function () {
+			tracker.playing = false;
+			var pos = player.getCurrentTime() || tracker.duration;
+			tracker.watched.add(tracker._lastTimeUpdate, pos);
+			tracker.lastPosition = pos;
+			stopCheckpoints(tracker);
+			clearInterval(tracker._pollTimer);
+			sendEvent(tracker, 'media-ended');
+		});
+	}
+
+	_loadAndBind();
+}
+
+// ── Muse.ai (postMessage API) ──
+
+function trackMuseAi(iframe) {
+	var id = genId(iframe);
+	if (state.tracked[id]) return;
+
+	var tracker = createTracker(id, 'museai', iframe, 0);
+	state.tracked[id] = tracker;
+
+	window.addEventListener('message', function (e) {
+		if (!e.data || e.source !== iframe.contentWindow) return;
+		var data;
+		try { data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data; }
+		catch (err) { return; }
+
+		if (data.event === 'play') {
+			tracker.playing = true;
+			tracker.lastPosition = data.currentTime || 0;
+			tracker._lastTimeUpdate = tracker.lastPosition;
+			tracker.duration = data.duration || tracker.duration;
+			sendEvent(tracker, 'media-play');
+			startCheckpoints(tracker);
+		} else if (data.event === 'pause') {
+			if (!tracker.playing) return;
+			tracker.playing = false;
+			var pos = data.currentTime || 0;
+			tracker.watched.add(tracker._lastTimeUpdate, pos);
+			tracker.lastPosition = pos;
+			stopCheckpoints(tracker);
+			sendEvent(tracker, 'media-pause');
+		} else if (data.event === 'ended') {
+			tracker.playing = false;
+			tracker.watched.add(tracker._lastTimeUpdate, tracker.duration);
+			tracker.lastPosition = tracker.duration;
+			stopCheckpoints(tracker);
+			sendEvent(tracker, 'media-ended');
+		} else if (data.event === 'timeupdate') {
+			var pos = data.currentTime || 0;
+			tracker.duration = data.duration || tracker.duration;
+			if (tracker.playing && pos > tracker._lastTimeUpdate) {
+				tracker.watched.add(tracker._lastTimeUpdate, pos);
+			}
+			tracker._lastTimeUpdate = pos;
+			tracker.lastPosition = pos;
+		}
+	});
+
+	// Request the iframe to emit events
+	try { iframe.contentWindow.postMessage({ method: 'addEventListener', value: 'play' }, '*'); } catch(e){}
+	try { iframe.contentWindow.postMessage({ method: 'addEventListener', value: 'pause' }, '*'); } catch(e){}
+	try { iframe.contentWindow.postMessage({ method: 'addEventListener', value: 'ended' }, '*'); } catch(e){}
+	try { iframe.contentWindow.postMessage({ method: 'addEventListener', value: 'timeupdate' }, '*'); } catch(e){}
+}

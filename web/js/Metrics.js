@@ -15,8 +15,16 @@ root.Metrics = Metrics;
 // ── Session Management ──
 
 Metrics._sessionKey = 'metrics_sid';
+Metrics._visitorKey = 'metrics_vid';
 Metrics._sid = null;
+Metrics._vid = null;
 
+/**
+ * Get or create a per-tab session ID (sessionStorage).
+ * A new ID is generated for each browser tab.
+ * @method getSessionId
+ * @return {String} The session ID
+ */
 Metrics.getSessionId = function () {
 	if (Metrics._sid) return Metrics._sid;
 	try {
@@ -32,8 +40,47 @@ Metrics.getSessionId = function () {
 	return Metrics._sid;
 };
 
+/**
+ * Get or create a persistent visitor ID that survives across sessions.
+ * Tries localStorage first (persists until cleared).
+ * Falls back to sessionStorage (ITP-safe, but per-tab only).
+ * When loaded cross-origin (e.g. from a CDN), localStorage is still
+ * first-party to the page's domain — ITP won't block it.
+ * @method getVisitorId
+ * @return {String} The visitor ID
+ */
+Metrics.getVisitorId = function () {
+	if (Metrics._vid) return Metrics._vid;
+	var vid = null;
+	try {
+		vid = localStorage.getItem(Metrics._visitorKey);
+		if (!vid) {
+			vid = Math.random().toString(36).slice(2) + Date.now().toString(36)
+				+ Math.random().toString(36).slice(2);
+			localStorage.setItem(Metrics._visitorKey, vid);
+		}
+		Metrics._vid = vid;
+		return vid;
+	} catch (e) {}
+	try {
+		vid = sessionStorage.getItem(Metrics._visitorKey);
+		if (!vid) {
+			vid = Math.random().toString(36).slice(2) + Date.now().toString(36)
+				+ Math.random().toString(36).slice(2);
+			sessionStorage.setItem(Metrics._visitorKey, vid);
+		}
+		Metrics._vid = vid;
+		return vid;
+	} catch (e) {}
+	vid = Math.random().toString(36).slice(2) + Date.now().toString(36)
+		+ Math.random().toString(36).slice(2);
+	Metrics._vid = vid;
+	return vid;
+};
+
 // ── Transport (standalone — overridden by Q integration below) ──
 
+Metrics._defaultEndpoint = 'https://invites.to/metrics';
 Metrics._endpoint = null;
 Metrics._page = null;
 Metrics._extra = null;
@@ -52,6 +99,9 @@ Metrics.send = function (label, data) {
 
 	var payload = {
 		session: Metrics.getSessionId(),
+		visitor: Metrics.getVisitorId(),
+		origin: location.origin,
+		url: location.pathname + location.search + location.hash,
 		page: Metrics._page || document.title,
 		label: label,
 		t: Date.now()
@@ -154,20 +204,42 @@ function _bindVisibility() {
 	document.addEventListener('active', handleVisEvent, false);
 }
 
-// ── Unload / bfcache ──
+// ── Unload / bfcache / background-foreground ──
 
 Metrics._unloadBound = false;
+Metrics._bgTime = null;        // when backgrounded
+Metrics._bgCooldown = false;   // suppress rapid duplicate background events
+Metrics._bgCooldownMs = 1000;  // ignore repeated bg events within 1s
 
 function _bindUnload() {
 	if (Metrics._unloadBound) return;
 	Metrics._unloadBound = true;
 
-	// Visibility-based exit (most reliable)
 	Metrics.onVisibilityChange(function (isVisible) {
 		if (!isVisible) {
+			// Backgrounded — send immediately (timers don't fire in bg tabs)
+			// but suppress if we just sent one within the cooldown
+			if (!Metrics._bgCooldown) {
+				Metrics._bgCooldown = true;
+				var elapsed = Math.round((Date.now() - Metrics._startTime) / 1000);
+				Metrics.send('background', { elapsed: elapsed });
+			}
+			Metrics._bgTime = Date.now();
 			_sendUnload();
 		} else {
-			Metrics._unloaded = false; // returned to page
+			// Foregrounded — reset cooldown so next background can fire
+			Metrics._bgCooldown = false;
+			Metrics._unloaded = false;
+			if (Metrics._bgTime) {
+				var awaySeconds = Math.round((Date.now() - Metrics._bgTime) / 1000);
+				Metrics._bgTime = null;
+				// Only report return if they were away > 1 second
+				// (rapid alt-tab = noise, background event already sent but
+				// no point sending a foreground for a sub-second switch)
+				if (awaySeconds > 1) {
+					Metrics.send('foreground', { away: awaySeconds });
+				}
+			}
 		}
 	}, 'Metrics.unload');
 
@@ -180,15 +252,17 @@ function _bindUnload() {
 	window.addEventListener('pageshow', function (e) {
 		if (e.persisted) {
 			Metrics._unloaded = false;
+			Metrics._bgCooldown = false;
+			Metrics.send('foreground', { bfcache: true });
 		}
 	});
 }
 
 function _sendUnload() {
 	if (Metrics._unloaded) return;
-	Metrics._unloaded = true;
 	var elapsed = Math.round((Date.now() - Metrics._startTime) / 1000);
 	Metrics.send('unload:' + elapsed + 's');
+	Metrics._unloaded = true; // set AFTER send, not before
 }
 
 /**
@@ -203,7 +277,7 @@ function _sendUnload() {
  */
 Metrics.init = function (options) {
 	options = options || {};
-	if (options.endpoint) Metrics._endpoint = options.endpoint;
+	Metrics._endpoint = options.endpoint || Metrics._defaultEndpoint;
 	if (options.page) Metrics._page = options.page;
 	if (options.sessionKey) Metrics._sessionKey = options.sessionKey;
 	if (options.sessionId) Metrics._sid = options.sessionId;
@@ -214,7 +288,27 @@ Metrics.init = function (options) {
 		_bindUnload();
 	}
 
-	Metrics.send('loaded');
+	// Context snapshot — sent once with the "loaded" event
+	var ctx = {
+		referrer: document.referrer || '',
+		screen: screen.width + 'x' + screen.height,
+		viewport: window.innerWidth + 'x' + window.innerHeight,
+		dpr: window.devicePixelRatio || 1,
+		lang: navigator.language || '',
+		touch: ('ontouchstart' in window) || (navigator.maxTouchPoints > 0)
+	};
+	try { ctx.tz = Intl.DateTimeFormat().resolvedOptions().timeZone; } catch (e) {}
+	try {
+		if (navigator.connection && navigator.connection.effectiveType) {
+			ctx.conn = navigator.connection.effectiveType;
+		}
+	} catch (e) {}
+	try {
+		var nav = performance.getEntriesByType('navigation');
+		if (nav && nav[0]) ctx.navType = nav[0].type;
+	} catch (e) {}
+
+	Metrics.send('loaded', ctx);
 	return Metrics;
 };
 
